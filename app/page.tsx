@@ -1,3 +1,3 @@
 export default function Page() {
-  return <div>Start Dark Mode</div>;
+  return <div className="flex items-center justify-center h-screen"></div>;
 }
