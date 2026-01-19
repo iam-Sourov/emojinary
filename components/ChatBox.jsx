@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, Trash2, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 
-const ChatBoxCompact = ({ inputValue, setInputValue }) => {
+const ChatBox = ({ inputValue, setInputValue }) => {
   console.log(inputValue)
   const [isCustom, setCustom] = useState(false);
 
@@ -70,4 +70,4 @@ const ChatBoxCompact = ({ inputValue, setInputValue }) => {
   );
 };
 
-export default ChatBoxCompact;
+export default ChatBox;
