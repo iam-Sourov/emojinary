@@ -1,7 +1,8 @@
 @import 'tailwindcss';
+@plugin "@toolwind/corner-shape";
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@plugin "@toolwind/corner-shape";
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -121,6 +122,7 @@
   * {
     @apply border-border outline-ring/50 corner-squircle;
   }
+
   body {
     @apply bg-background text-foreground;
   }
