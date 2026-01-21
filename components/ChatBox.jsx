@@ -45,7 +45,7 @@ const ChatBox = ({ inputValue, setInputValue }) => {
                 <div className="flex items-center justify-center gap-2">
                   <Input
                     type="text"
-                    value={inputValue}
+                    defaultValue={inputValue}
                     className="h-10 border-muted-foreground/20 transition-colors"
                   />
                   <Button onClick={() => setInputValue('')} size="icon" variant="destructive">
