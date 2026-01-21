@@ -1,5 +1,5 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
 import './globals.css';
@@ -36,7 +36,7 @@ export default function RootLayout({
         />
         <SidebarProvider>
           <AppSidebar />
-          <main>{children}</main>
+          <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </body>
     </html>
