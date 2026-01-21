@@ -40,7 +40,7 @@ function AppSidebarContent() {
               {/* Right side: Sidebar Trigger */}
               <div className="flex items-center gap-1">
                 <AnimatedThemeToggler />
-                <SidebarTrigger />
+                {/* <SidebarTrigger /> */}
               </div>
             </>
           )}
