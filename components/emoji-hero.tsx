@@ -8,7 +8,7 @@ export function EmojiHero() {
         <span>AI Storyteller</span>
       </div>
       <h1 className="text-2xl md:text-3xl font-extralight tracking-tight lg:text-4xl uppercase">Emojinary</h1>
-      <p className="max-w-[500px] text-sm text-muted-foreground">Select a few icons, and watch the story unfold.</p>
+      <p className="max-w-125 text-sm text-muted-foreground">Select a few icons, and watch the story unfold.</p>
     </div>
   );
 }
