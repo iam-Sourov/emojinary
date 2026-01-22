@@ -15,7 +15,7 @@ export function StoryStage({ selectedEmojis, onRemoveEmoji, onGenerate, isGenera
 
   return (
     <div className="w-full max-w-xl mx-auto px-4 mb-4">
-      <div className="relative rounded-2xl border bg-card/30 backdrop-blur-md p-4 sm:p-5 flex flex-col items-center justify-center transition-all hover:bg-card/40">
+      <div className="relative rounded-2xl border bg-/30 backdrop-blur-md p-4 sm:p-5 flex flex-col items-center justify-center transition-all hover:bg-card/40">
         {/* Slots Container */}
         <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 w-full">
           {slots.map((_, index) => {

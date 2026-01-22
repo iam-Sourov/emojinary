@@ -45,10 +45,14 @@ export function EmojiPicker({ onEmojiSelect, selectedEmojis = [], disabled }: Em
   };
 
   const handleAddCustom = () => {
-    if (customEmoji.trim()) {
-      onEmojiSelect(customEmoji.trim());
-      setCustomEmoji('');
+    if (!customEmoji.trim()) {
+      return;
     }
+    [...customEmoji.trim()]
+      .filter((char) => /\p{Extended_Pictographic}/u.test(char) && !selectedEmojis.includes(char))
+      .slice(0, 4 - selectedEmojis.length)
+      .forEach(onEmojiSelect);
+    setCustomEmoji('');
   };
 
   return (
