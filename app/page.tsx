@@ -114,37 +114,69 @@ export default function Page() {
           {isPanelOpen && (
             <>
               <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={100} minSize={30} className="bg-muted/10">
+              <ResizablePanel defaultSize={75} minSize={30} className="bg-muted/10">
                 <motion.div
-                  initial={{ opacity: 0, x: 50 }}
+                  initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 50 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="relative p-6"
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ type: 'spring', stiffness: 80, damping: 20, mass: 1 }}
+                  className="h-screen overflow-y-auto p-2"
                 >
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleClosePanel}
-                    className="absolute right-6 top-6 h-8 w-8 rounded-full z-10"
+                    className="absolute right-6 top-6 h-8 w-8 rounded-full z-10 hover:bg-muted"
                   >
                     <X className="h-4 w-4" />
                   </Button>
-
-                  <div className="h-full flex flex-col justify-center">
+                  <div className="min-h-full flex flex-col justify-center py-12">
+                    {' '}
                     <motion.div
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 30, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 0.1, duration: 0.4 }}
-                      className="w-full max-w-xl mx-auto p-6 bg-card/50 backdrop-blur-sm rounded-2xl border shadow-sm"
+                      transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
+                      className="flex-1 flex flex-col max-w-3xl mx-auto w-full rounded-md border shadow-sm p-8 md:p-12"
                     >
-                      <h3 className="text-xl font-semibold mb-3">Once upon a time...</h3>
-                      <p className="leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                        {story}
-                        {isGenerating && (
-                          <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse align-middle" />
+                      <div className="mb-8 border-b pb-8">
+                        <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
+                          <span className=" text-primary px-2 py-0.5 rounded text-xs font-semibold">
+                            STORY
+                          </span>
+                          <span>{new Date().toLocaleDateString()}</span>
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+                          The Tale of {selectedEmojis.slice(0, 3).join('')}...
+                        </h2>
+                      </div>
+                      <div className="prose prose-zinc dark:prose-invert max-w-none mb-8">
+                        <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap font-serif">
+                          {story}
+                          {isGenerating && (
+                            <span className="inline-block w-1.5 h-5 ml-1 bg-primary animate-pulse align-middle" />
+                          )}
+                        </p>
+                        {!story && isGenerating && (
+                          <p className="text-muted-foreground italic animate-pulse">weaving a new tale...</p>
                         )}
-                      </p>
+                      </div>
+                      {!isGenerating && story && (
+                        <div className="mt-auto flex items-center gap-4 pt-8 border-t">
+                          <Button variant="outline" onClick={handleClosePanel}>
+                            Generate Another
+                          </Button>
+                          {/* <Button
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              handleClosePanel();
+                              toast.success('Story cleared');
+                            }}
+                          >
+                            Close this story
+                          </Button> */}
+                        </div>
+                      )}
                     </motion.div>
                   </div>
                 </motion.div>
