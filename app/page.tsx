@@ -5,18 +5,28 @@ import { EmojiPicker } from '@/components/emoji-picker';
 import { StoryStage } from '@/components/story-stage';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
   type ImperativePanelHandle,
 } from '@/components/ui/resizable';
 import { useStoryGeneration } from '@/hooks/use-story-generation';
 import { animate, AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Loader2, Lock, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const EMOJI_STORAGE_KEY = 'emojis';
-
 const ANIMATION_DURATION = 4.0;
 const ANIMATION_EASE = [0.22, 1, 0.36, 1];
 
@@ -26,6 +36,12 @@ export default function Page() {
   const { story, isGenerating, generateStory } = useStoryGeneration();
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // --- NEW STATE FOR LOGIN LOGIC ---
+  const [generationCount, setGenerationCount] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
 
   const handleEmojiSelect = (emoji: string) => {
     if (selectedEmojis.length >= 4) return;
@@ -41,24 +57,40 @@ export default function Page() {
       toast.warning('Please select 4 emojis to generate a story.');
       return;
     }
+    if (generationCount >= 1 && !isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     setIsPanelOpen(true);
     const success = await generateStory(selectedEmojis);
     if (success) {
       setSelectedEmojis([]);
+      setGenerationCount((prev) => prev + 1);
     }
+  };
+
+  // --- MOCK LOGIN FUNCTION ---
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoadingLogin(true);
+    setTimeout(() => {
+      setIsLoggedIn(true);
+      setShowLoginModal(false);
+      setIsLoadingLogin(false);
+      toast.success('Successfully logged in! You can now generate stories.');
+    }, 1500);
   };
 
   const handleClosePanel = () => {
     setIsPanelOpen(false);
   };
 
- 
- useEffect(() => {
+  // --- ANIMATION LOGIC ---
+  useEffect(() => {
     const panel = inputPanelRef.current;
-    
     if (panel) {
       if (isPanelOpen) {
-        const controls = animate(100, 35, {
+        const controls = animate(100, 25, {
           duration: ANIMATION_DURATION,
           ease: ANIMATION_EASE,
           onUpdate: (value) => panel.resize(value),
@@ -67,8 +99,8 @@ export default function Page() {
       } else {
         const currentSize = panel.getSize();
         const controls = animate(currentSize, 100, {
-          duration: 1.0, 
-          ease: "easeInOut",
+          duration: 1.0,
+          ease: 'easeInOut',
           onUpdate: (value) => panel.resize(value),
         });
         return () => controls.stop();
@@ -100,14 +132,46 @@ export default function Page() {
 
   return (
     <main className="h-screen w-full overflow-hidden bg-background">
+      {/* --- LOGIN MODAL --- */}
+      <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+        <DialogContent className="sm:max-w-106.25">
+          <DialogHeader>
+            <DialogTitle>Unlock Unlimited Stories</DialogTitle>
+            <DialogDescription>
+              You`ve used your free guest generation. Log in to continue creating amazing emoji tales.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleLogin} className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="hello@example.com" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required />
+            </div>
+            <DialogFooter className="mt-2">
+              <Button type="submit" className="w-full" disabled={isLoadingLogin}>
+                {isLoadingLogin ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="mr-2 h-4 w-4" />
+                    Log in to Generate
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <ResizablePanelGroup direction="horizontal" className="w-full h-full">
-        {/* --- LEFT PANEL --- */}
-        <ResizablePanel
-          ref={inputPanelRef}
-          defaultSize={40}
-          minSize={25}
-          className="flex flex-col"
-        >
+        <ResizablePanel ref={inputPanelRef} defaultSize={100} minSize={25} className="flex flex-col">
           <div className="h-full bg-background selection:bg-primary/20">
             <div
               className={`container mx-auto py-8 flex flex-col items-center gap-8 min-h-full transition-all ${isPanelOpen ? 'opacity-40 scale-95 blur-[1px]' : 'opacity-100 scale-100'}`}
@@ -131,11 +195,13 @@ export default function Page() {
             </div>
           </div>
         </ResizablePanel>
+
         {/* --- RIGHT PANEL --- */}
         <AnimatePresence mode="wait">
           {isPanelOpen && (
             <>
-              <ResizablePanel defaultSize={35} minSize={0} className="bg-muted/10">
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={75} minSize={0} className="bg-muted/10">
                 <motion.div
                   initial={{ x: '100%', opacity: 1 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -163,7 +229,7 @@ export default function Page() {
                         duration: 1.0,
                         ease: 'easeOut',
                       }}
-                      className="flex-1 flex flex-col max-w-3xl mx-auto w-full rounded-md border shadow-sm p-8 md:p-12"
+                      className="flex-1 flex flex-col max-w-3xl mx-auto w-full rounded-md border shadow-sm p-8 md:p-12 bg-card/50 backdrop-blur-sm"
                     >
                       <div className="mb-8 border-b pb-8">
                         <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
