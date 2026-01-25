@@ -2,18 +2,9 @@
 
 import { EmojiHero } from '@/components/emoji-hero';
 import { EmojiPicker } from '@/components/emoji-picker';
+import { LoginModal } from '@/components/login-modal';
 import { StoryStage } from '@/components/story-stage';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -22,7 +13,7 @@ import {
 } from '@/components/ui/resizable';
 import { useStoryGeneration } from '@/hooks/use-story-generation';
 import { animate, AnimatePresence, motion } from 'framer-motion';
-import { Loader2, Lock, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -37,11 +28,9 @@ export default function Page() {
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- NEW STATE FOR LOGIN LOGIC ---
   const [generationCount, setGenerationCount] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
 
   const handleEmojiSelect = (emoji: string) => {
     if (selectedEmojis.length >= 4) return;
@@ -61,24 +50,14 @@ export default function Page() {
       setShowLoginModal(true);
       return;
     }
+
+    // 3. Generate
     setIsPanelOpen(true);
     const success = await generateStory(selectedEmojis);
     if (success) {
       setSelectedEmojis([]);
       setGenerationCount((prev) => prev + 1);
     }
-  };
-
-  // --- MOCK LOGIN FUNCTION ---
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoadingLogin(true);
-    setTimeout(() => {
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-      setIsLoadingLogin(false);
-      toast.success('Successfully logged in! You can now generate stories.');
-    }, 1500);
   };
 
   const handleClosePanel = () => {
@@ -90,7 +69,7 @@ export default function Page() {
     const panel = inputPanelRef.current;
     if (panel) {
       if (isPanelOpen) {
-        const controls = animate(100, 25, {
+        const controls = animate(100, 35, {
           duration: ANIMATION_DURATION,
           ease: ANIMATION_EASE,
           onUpdate: (value) => panel.resize(value),
@@ -116,7 +95,7 @@ export default function Page() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) setSelectedEmojis(parsed);
       } catch (error) {
-        console.error('Failed to parse emojis from storage', error);
+        console.error(error);
       }
     }
     setIsLoaded(true);
@@ -132,49 +111,18 @@ export default function Page() {
 
   return (
     <main className="h-screen w-full overflow-hidden bg-background">
-      {/* --- LOGIN MODAL --- */}
-      <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
-        <DialogContent className="sm:max-w-106.25">
-          <DialogHeader>
-            <DialogTitle>Unlock Unlimited Stories</DialogTitle>
-            <DialogDescription>
-              You`ve used your free guest generation. Log in to continue creating amazing emoji tales.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleLogin} className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="hello@example.com" required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
-            </div>
-            <DialogFooter className="mt-2">
-              <Button type="submit" className="w-full" disabled={isLoadingLogin}>
-                {isLoadingLogin ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="mr-2 h-4 w-4" />
-                    Log in to Generate
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <LoginModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        onLoginSuccess={() => setIsLoggedIn(true)}
+      />
 
       <ResizablePanelGroup direction="horizontal" className="w-full h-full">
-        <ResizablePanel ref={inputPanelRef} defaultSize={100} minSize={25} className="flex flex-col">
+        {/* --- LEFT PANEL --- */}
+        <ResizablePanel ref={inputPanelRef} defaultSize={100} minSize={0} className="flex flex-col">
           <div className="h-full bg-background selection:bg-primary/20">
             <div
-              className={`container mx-auto py-8 flex flex-col items-center gap-8 min-h-full transition-all ${isPanelOpen ? 'opacity-40 scale-95 blur-[1px]' : 'opacity-100 scale-100'}`}
+              className={`container mx-auto py-8 flex flex-col items-center gap-8 min-h-full transition-all ${isPanelOpen ? 'scale-95' : 'scale-100'}`}
               style={{
                 transitionDuration: `${ANIMATION_DURATION}s`,
                 transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
