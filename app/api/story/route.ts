@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
 
     const prompt = `Write a creative, engaging, and short story (approx 100-150 words) based on these emojis: ${emojis.join(' ')}. The story should be funny, thrilling and dramatic. The Story should have characters and character should have names related to the given emojis. Make sure you use the emojis in the story.`;
 

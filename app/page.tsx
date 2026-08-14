@@ -27,8 +27,8 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const EMOJI_STORAGE_KEY = 'emojis';
-const ANIMATION_DURATION = 4.0;
-const ANIMATION_EASE = [0.22, 1, 0.36, 1];
+const ANIMATION_DURATION = 0.5;
+const ANIMATION_EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function Page() {
   const [selectedEmojis, setSelectedEmojis] = useState<string[]>([]);
@@ -90,16 +90,16 @@ export default function Page() {
     const panel = inputPanelRef.current;
     if (panel) {
       if (isPanelOpen) {
-        const controls = animate(100, 25, {
+        const controls = animate(100 as number, 25 as number, {
           duration: ANIMATION_DURATION,
-          ease: ANIMATION_EASE,
+          ease: ANIMATION_EASE as any,
           onUpdate: (value) => panel.resize(value),
         });
         return () => controls.stop();
       } else {
         const currentSize = panel.getSize();
-        const controls = animate(currentSize, 100, {
-          duration: 1.0,
+        const controls = animate(currentSize as number, 100 as number, {
+          duration: 0.4,
           ease: 'easeInOut',
           onUpdate: (value) => panel.resize(value),
         });
@@ -134,7 +134,7 @@ export default function Page() {
     <main className="h-screen w-full overflow-hidden bg-background">
       {/* --- LOGIN MODAL --- */}
       <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
-        <DialogContent className="sm:max-w-106.25">
+        <DialogContent className="sm:max-w-[420px] bg-card/90 backdrop-blur-md border-border/60">
           <DialogHeader>
             <DialogTitle>Unlock Unlimited Stories</DialogTitle>
             <DialogDescription>

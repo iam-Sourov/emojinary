@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface UseStoryGenerationResult {
   story: string;
@@ -58,7 +59,7 @@ export function useStoryGeneration(): UseStoryGenerationResult {
       if (!response.ok || !response.body) {
         const data = await response.json().catch(() => ({}));
         console.error('Error:', data.error);
-        alert(data.error || 'Failed to generate story.');
+        toast.error(data.error || 'Failed to generate story.');
         isFetchingRef.current = false;
         setIsGenerating(false);
         return false;
@@ -79,7 +80,7 @@ export function useStoryGeneration(): UseStoryGenerationResult {
       return true;
     } catch (error) {
       console.error('Request failed:', error);
-      alert('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');
       isFetchingRef.current = false;
       setIsGenerating(false);
       return false;

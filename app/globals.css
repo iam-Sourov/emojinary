@@ -124,7 +124,13 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground min-h-screen;
+    background-image: radial-gradient(circle at 50% 0%, oklch(0.98 0.01 220 / 80%) 0%, oklch(1 0 0) 100%);
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-image: radial-gradient(circle at 50% 0%, oklch(0.18 0.02 240 / 70%) 0%, rgb(18, 18, 18) 100%);
   }
 }
 
