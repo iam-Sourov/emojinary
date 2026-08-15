@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Smile, Sparkles } from 'lucide-react';
@@ -148,11 +147,11 @@ export function EmojiPicker({ onEmojiSelect, selectedEmojis = [], disabled }: Em
       {/* Custom Emoji Input */}
       <div className="flex items-center gap-2.5 px-3.5 py-2 bg-secondary/30 rounded-2xl border border-border/55 shadow-inner focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-300">
         <Smile className="w-4 h-4 text-muted-foreground/75 shrink-0" />
-        <Input
+        <input
           placeholder="Type or paste any emoji..."
           value={customEmoji}
           onChange={(e) => setCustomEmoji(e.target.value)}
-          className="flex-1 bg-transparent border-0 h-7 text-sm px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/45 font-medium"
+          className="flex-1 bg-transparent border-0 h-7 text-sm px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/45 font-medium outline-none"
           onKeyDown={(e) => e.key === 'Enter' && handleAddCustom()}
           disabled={disabled}
         />
