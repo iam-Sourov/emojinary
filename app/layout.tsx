@@ -2,10 +2,18 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Geist, Geist_Mono, Inter, Pacifico } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/lib/auth-context';
+import { ConversationProvider } from '@/lib/conversation-context';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+
+const pacifico = Pacifico({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-heading',
+});
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,18 +36,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${pacifico.variable}`} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var s=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&p))document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark')}catch(e){}})()`,
           }}
         />
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-        <Toaster />
+        <AuthProvider>
+          <ConversationProvider>
+            <SidebarProvider defaultOpen={false}>
+              <AppSidebar />
+              <SidebarInset>{children}</SidebarInset>
+            </SidebarProvider>
+            <Toaster />
+          </ConversationProvider>
+        </AuthProvider>
       </body>
     </html>
   );
