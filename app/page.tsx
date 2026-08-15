@@ -8,12 +8,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -21,8 +18,11 @@ import {
   type ImperativePanelHandle,
 } from '@/components/ui/resizable';
 import { useStoryGeneration } from '@/hooks/use-story-generation';
+import { useAuth } from '@/lib/auth-context';
+import { useConversations } from '@/lib/conversation-context';
 import { animate, AnimatePresence, motion } from 'framer-motion';
-import { Loader2, Lock, X } from 'lucide-react';
+import { Loader2, Sparkles, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -31,17 +31,17 @@ const ANIMATION_DURATION = 0.5;
 const ANIMATION_EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function Page() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { conversations, createConversation } = useConversations();
+
   const [selectedEmojis, setSelectedEmojis] = useState<string[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const { story, isGenerating, generateStory } = useStoryGeneration();
   const inputPanelRef = useRef<ImperativePanelHandle>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // --- NEW STATE FOR LOGIN LOGIC ---
-  const [generationCount, setGenerationCount] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoadingLogin, setIsLoadingLogin] = useState(false);
 
   const handleEmojiSelect = (emoji: string) => {
     if (selectedEmojis.length >= 4) return;
@@ -57,28 +57,23 @@ export default function Page() {
       toast.warning('Please select 4 emojis to generate a story.');
       return;
     }
-    if (generationCount >= 1 && !isLoggedIn) {
+    // Limit guest user to 1 story
+    if (!isLoggedIn && conversations.length >= 1) {
       setShowLoginModal(true);
       return;
     }
+    
     setIsPanelOpen(true);
-    const success = await generateStory(selectedEmojis);
-    if (success) {
-      setSelectedEmojis([]);
-      setGenerationCount((prev) => prev + 1);
-    }
-  };
-
-  // --- MOCK LOGIN FUNCTION ---
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoadingLogin(true);
-    setTimeout(() => {
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-      setIsLoadingLogin(false);
-      toast.success('Successfully logged in! You can now generate stories.');
-    }, 1500);
+    const emojisToUse = [...selectedEmojis];
+    
+    await generateStory(emojisToUse, async (completedStory) => {
+      const newConv = await createConversation(emojisToUse, completedStory);
+      if (newConv) {
+        setSelectedEmojis([]);
+        localStorage.removeItem(EMOJI_STORAGE_KEY);
+        router.push(`/story/${newConv.id}`);
+      }
+    });
   };
 
   const handleClosePanel = () => {
@@ -92,7 +87,7 @@ export default function Page() {
       if (isPanelOpen) {
         const controls = animate(100 as number, 25 as number, {
           duration: ANIMATION_DURATION,
-          ease: ANIMATION_EASE as any,
+          ease: [...ANIMATION_EASE],
           onUpdate: (value) => panel.resize(value),
         });
         return () => controls.stop();
@@ -114,12 +109,18 @@ export default function Page() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setSelectedEmojis(parsed);
+        if (Array.isArray(parsed)) {
+          setTimeout(() => {
+            setSelectedEmojis(parsed);
+          }, 0);
+        }
       } catch (error) {
         console.error('Failed to parse emojis from storage', error);
       }
     }
-    setIsLoaded(true);
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 0);
   }, []);
 
   useEffect(() => {
@@ -132,41 +133,36 @@ export default function Page() {
 
   return (
     <main className="h-screen w-full overflow-hidden bg-background">
-      {/* --- LOGIN MODAL --- */}
+      {/* --- GUEST LIMIT MODAL --- */}
       <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
-        <DialogContent className="sm:max-w-[420px] bg-card/90 backdrop-blur-md border-border/60">
+        <DialogContent className="sm:max-w-[400px] bg-card/95 backdrop-blur-md border-border/50">
           <DialogHeader>
-            <DialogTitle>Unlock Unlimited Stories</DialogTitle>
-            <DialogDescription>
-              You`ve used your free guest generation. Log in to continue creating amazing emoji tales.
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+              Unlock Unlimited Tales
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-sm text-muted-foreground">
+              You&apos;ve generated your free guest story. Create a free account or log in to weave unlimited emoji stories and chat with characters!
             </DialogDescription>
           </DialogHeader>
-
-          <form onSubmit={handleLogin} className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="hello@example.com" required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
-            </div>
-            <DialogFooter className="mt-2">
-              <Button type="submit" className="w-full" disabled={isLoadingLogin}>
-                {isLoadingLogin ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="mr-2 h-4 w-4" />
-                    Log in to Generate
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={() => {
+                setShowLoginModal(false);
+                router.push('/login?redirect=/');
+              }}
+              className="w-full cursor-pointer font-semibold"
+            >
+              Sign In / Register
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowLoginModal(false)}
+              className="w-full cursor-pointer"
+            >
+              Maybe Later
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -216,6 +212,7 @@ export default function Page() {
                     variant="ghost"
                     size="icon"
                     onClick={handleClosePanel}
+                    disabled={isGenerating}
                     className="absolute right-6 top-6 h-8 w-8 rounded-full z-10 hover:bg-muted"
                   >
                     <X className="h-4 w-4" />
@@ -232,8 +229,8 @@ export default function Page() {
                       className="flex-1 flex flex-col max-w-3xl mx-auto w-full rounded-md border shadow-sm p-8 md:p-12 bg-card/50 backdrop-blur-sm"
                     >
                       <div className="mb-8 border-b pb-8">
-                        <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
-                          <span className=" text-primary px-2 py-0.5 rounded text-xs font-semibold">
+                      <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
+                          <span className=" text-primary px-2 py-0.5 rounded text-xs font-semibold bg-primary/10">
                             STORY
                           </span>
                           <span>{new Date().toLocaleDateString()}</span>
@@ -244,24 +241,19 @@ export default function Page() {
                       </div>
 
                       <div className="prose prose-zinc dark:prose-invert max-w-none mb-8">
-                        <p className="text-lg leading-normal text-foreground/90 whitespace-pre-wrap ">
+                        <p className="text-lg leading-normal text-foreground/90 whitespace-pre-wrap">
                           {story}
                           {isGenerating && (
                             <span className="inline-block w-1.5 h-5 ml-1 bg-primary animate-pulse align-middle" />
                           )}
                         </p>
                         {!story && isGenerating && (
-                          <p className="text-muted-foreground italic animate-pulse">weaving a new tale...</p>
+                          <div className="flex items-center gap-2 text-muted-foreground italic animate-pulse">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            weaving a new tale...
+                          </div>
                         )}
                       </div>
-
-                      {!isGenerating && story && (
-                        <div className="mt-auto flex items-center gap-4 pt-8 border-t">
-                          <Button variant="outline" onClick={handleClosePanel}>
-                            Generate Another
-                          </Button>
-                        </div>
-                      )}
                     </motion.div>
                   </div>
                 </motion.div>
